@@ -63,9 +63,11 @@ Sampling adds variety, not learned competence, and can reduce playing strength.
 
 Laya's probability output is deterministic for the same checkpoint and request;
 it does not learn during a game. Snake uses temperature `1.0`, preserving rather
-than sharpening that distribution when sampling. On CPU, model inference remains
-the dominant per-step cost; the web auto-player adds only a short scheduling
-pause between decisions and reports inference latency separately.
+than sharpening that distribution when sampling among tactically equivalent
+actions. Its harness first constrains actions to immediate food, then non-trapping
+shortest food routes; strictly worse routes are not sampled. On CPU, model
+inference remains the dominant per-step cost; the web auto-player adds only a
+short scheduling pause between decisions and reports inference latency separately.
 
 Gameplay observation (2026-09-28): the user reports that the tactical agent
 substantially outperforms the current fine-tuned checkpoint, which plays poorly.

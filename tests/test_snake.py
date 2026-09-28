@@ -27,10 +27,22 @@ class SnakeTests(unittest.TestCase):
     def test_harness_filters_fatal_actions(self):
         state = SnakeState(width=5, height=5, snake=((4, 2), (3, 2)), direction="right", food=(0, 0))
         observation, questions = SnakeLayaAgent.request(state)
-        self.assertEqual(set(questions["move"]["criteria"]), {"option_a", "option_b"})
-        self.assertEqual(observation["action_constraint"], "avoid_immediate_death")
+        self.assertEqual(set(questions["move"]["criteria"]), {"option_a"})
+        self.assertEqual(observation["action_constraint"], "shortest_safe_food_route")
         self.assertIn("food_bearing", observation)
         self.assertIn("Shortest visible route", questions["move"]["criteria"]["option_a"])
+
+    def test_harness_prioritizes_food_and_shortest_safe_route(self):
+        route_observation, route_questions = SnakeLayaAgent.request(SnakeState())
+        self.assertEqual(route_observation["action_constraint"], "shortest_safe_food_route")
+        self.assertEqual(len(route_questions["move"]["criteria"]), 1)
+        self.assertIn("Straight:", next(iter(route_questions["move"]["criteria"].values())))
+
+        eating = SnakeState(food=(5, 5))
+        eat_observation, eat_questions = SnakeLayaAgent.request(eating)
+        self.assertEqual(eat_observation["action_constraint"], "eat_food")
+        self.assertEqual(len(eat_questions["move"]["criteria"]), 1)
+        self.assertIn("Eats the food immediately", next(iter(eat_questions["move"]["criteria"].values())))
 
     def test_harness_decodes_neutral_option_labels(self):
         class Router:
@@ -39,10 +51,10 @@ class SnakeTests(unittest.TestCase):
                 return {"answers": {"move": {"choice": options[1],
                     "probabilities": dict.fromkeys(options, 1 / len(options))}}}
 
-        decision = SnakeLayaAgent(router=Router(), temperature=0).decide(SnakeState())
-        self.assertEqual(decision.action, "straight")
-        self.assertEqual(decision.metadata["selection"]["model_choice"], "straight")
-        self.assertEqual(set(decision.metadata["action_criteria"]), {"left", "straight", "right"})
+        decision = SnakeLayaAgent(router=Router(), temperature=0).decide(SnakeState(food=(1, 5)))
+        self.assertEqual(decision.action, "right")
+        self.assertEqual(decision.metadata["selection"]["model_choice"], "right")
+        self.assertEqual(set(decision.metadata["action_criteria"]), {"left", "right"})
 
     def test_web_adapter(self):
         class Agent:

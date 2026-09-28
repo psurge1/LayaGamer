@@ -51,11 +51,17 @@ export function mount(root, {config, inspector}) {
       if(auto&&alive)timer=setTimeout(step,60);
     } catch(error){if(current!==generation)return;busy=false;auto=false;render();$('snake-status').textContent=error.message;}
   }
+  function filteredReason(move,record){const fact=record.state.action_consequences[move],constraint=record.state.action_constraint;
+    if(!fact.safe)return 'Filtered because this move causes an immediate collision.';
+    if(constraint==='eat_food')return 'Filtered because another move eats the food immediately.';
+    if(constraint==='shortest_safe_food_route')return fact.trap_risk?'Filtered because this route risks trapping the snake.':'Filtered because another safe route reaches the food sooner.';
+    if(constraint==='avoid_trap')return 'Filtered because this move leaves too little escape space.';
+    return 'Filtered by the active tactical constraint.';}
   function present(record,index){const offered=record.action_criteria,probs=record.selection.probabilities;
     return {label:`Step ${index+1} · ${record.move}`,latencyMs:record.latency_ms,
       snapshot:`Head ${record.state.snake[0].join(',')} · facing ${record.state.direction}\nFood ${record.state.food.join(',')} · score ${record.state.score}`,
       note:`Snake tactical harness · ${record.state.action_constraint.replaceAll('_',' ')}.`,
-      choices:record.legal_moves.map(move=>({label:move,offered:move in offered,selected:move===record.move,probability:probs[move],description:offered[move]||'Filtered because this move dies immediately.'})),raw:record};}
+      choices:record.legal_moves.map(move=>({label:move,offered:move in offered,selected:move===record.move,probability:probs[move],description:offered[move]||filteredReason(move,record)})),raw:record};}
   function renderAnalysis(){inspector.render(records.map(present),selected,index=>{selected=index;renderAnalysis();});}
   function newGame(){generation++;pending?.abort();clearTimeout(timer);seed++;snake=[[4,5],[3,5],[2,5]];direction='right';score=0;alive=true;busy=false;auto=false;food=[7,5];records=[];selected=-1;lastLatency=null;boardCells=null;render();renderAnalysis();}
   $('snake-step').onclick=step;$('snake-auto').onclick=()=>{auto=!auto;render();if(auto)step();};$('snake-new').onclick=newGame;newGame();
