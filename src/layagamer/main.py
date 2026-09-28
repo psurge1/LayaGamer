@@ -3,8 +3,8 @@ import json
 import random
 from pathlib import Path
 
-from layagamer.agent import LayaPlayer
-from layagamer.tictactoe import Board
+from layagamer.games.tictactoe.agents.tactical import LayaPlayer
+from layagamer.games.tictactoe.engine import Board
 
 
 def main() -> None:

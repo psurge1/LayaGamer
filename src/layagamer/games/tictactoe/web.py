@@ -1,7 +1,7 @@
 """Translate this game's browser requests to its existing agents."""
-from layagamer.agent import LayaPlayer
+from .agents.tactical import LayaPlayer
 from layagamer.games.tictactoe.agents.finetuned import FinetunedAgent
-from layagamer.tictactoe import Board
+from .engine import Board
 
 
 class TicTacToeWeb:

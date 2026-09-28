@@ -1,1 +1,4 @@
-"""New tic-tac-toe experiments reuse the existing game engine."""
+"""Tic-tac-toe engine and agents."""
+from .engine import Board
+
+__all__ = ["Board"]

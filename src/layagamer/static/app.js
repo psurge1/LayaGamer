@@ -1,8 +1,12 @@
 import {createInspector} from './inspector.js';
 import {mount as mountTicTacToe} from './games/tictactoe.js';
+import {mount as mountSnake} from './games/snake.js';
+import {mount as mountMinesweeper} from './games/minesweeper.js';
+import {mount as mountChess} from './games/chess.js';
 
 // Add implemented games here; no plugin framework or placeholder modes.
-const gameViews = {tictactoe: mountTicTacToe};
+const gameViews = {tictactoe: mountTicTacToe, snake: mountSnake,
+  minesweeper: mountMinesweeper, chess: mountChess};
 const selector = document.getElementById('game-select');
 const root = document.getElementById('game-root');
 const inspector = createInspector(document.getElementById('analysis'));

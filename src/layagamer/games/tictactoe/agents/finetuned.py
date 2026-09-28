@@ -5,7 +5,7 @@ import random
 from layagamer.agents.sampling import select_action
 
 from layagamer.agents import Decision
-from layagamer.tictactoe import Board
+from ..engine import Board
 
 ENCODING_VERSION = "tictactoe-board-v1"
 

@@ -34,8 +34,8 @@ responsibilities and do not require a separate abstraction for every term.
 - Share only the decision envelope and genuinely reused inference utilities
   under `agents/` at package level. Keep training and dataset generation
   separate from runtime inference; store weights and run artifacts outside code.
-- The current flat tic-tac-toe scaffold is transitional. Migrate it when adding
-  the next agent/game, preserving CLI behavior. Do not build empty packages,
+- Tic-tac-toe, Snake, Minesweeper, and Chess follow the game-package layout.
+  Compatibility imports preserve the original tic-tac-toe CLI paths. Do not build empty packages,
   plugin registries, abstract base classes, or a universal game framework ahead
   of demonstrated needs. Use a small `Protocol` only when interchangeability
   needs a typed contract.

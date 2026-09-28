@@ -7,9 +7,16 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Lock
 
-from layagamer.agent import LayaPlayer
+from layagamer.games.tictactoe.agents.tactical import LayaPlayer
 from layagamer.games.tictactoe.web import TicTacToeWeb
 from layagamer.games.tictactoe.agents.finetuned import FinetunedAgent
+from layagamer.games.snake.agent import SnakeLayaAgent
+from layagamer.games.snake.web import SnakeWeb
+from layagamer.games.minesweeper.agent import MinesweeperLayaAgent
+from layagamer.games.minesweeper.web import MinesweeperWeb
+from layagamer.games.chess.agent import ChessLayaAgent
+from layagamer.games.chess.web import ChessWeb
+from layagamer.agents.runtime import SharedRouter
 
 LOGGER = logging.getLogger(__name__)
 ASSETS = Path(__file__).with_name("static")
@@ -17,7 +24,12 @@ ASSETS = Path(__file__).with_name("static")
 
 def make_handler(player: LayaPlayer, finetuned: FinetunedAgent | None = None) -> type[BaseHTTPRequestHandler]:
     inference_lock = Lock()
-    games = {"tictactoe": TicTacToeWeb(player, finetuned)}
+    games = {
+        "tictactoe": TicTacToeWeb(player, finetuned),
+        "snake": SnakeWeb(SnakeLayaAgent(device=player.device, router=player.router)),
+        "minesweeper": MinesweeperWeb(MinesweeperLayaAgent(device=player.device, router=player.router)),
+        "chess": ChessWeb(ChessLayaAgent(device=player.device, router=player.router)),
+    }
 
     class Handler(BaseHTTPRequestHandler):
         def send_payload(self, status: int, payload: bytes, content_type: str) -> None:
@@ -43,6 +55,9 @@ def make_handler(player: LayaPlayer, finetuned: FinetunedAgent | None = None) ->
                       "/app.js": ("app.js", "text/javascript; charset=utf-8"),
                       "/inspector.js": ("inspector.js", "text/javascript; charset=utf-8"),
                       "/games/tictactoe.js": ("games/tictactoe.js", "text/javascript; charset=utf-8"),
+                      "/games/snake.js": ("games/snake.js", "text/javascript; charset=utf-8"),
+                      "/games/minesweeper.js": ("games/minesweeper.js", "text/javascript; charset=utf-8"),
+                      "/games/chess.js": ("games/chess.js", "text/javascript; charset=utf-8"),
                       "/style.css": ("style.css", "text/css; charset=utf-8")}
             asset = assets.get(self.path)
             if asset is None:
@@ -53,8 +68,10 @@ def make_handler(player: LayaPlayer, finetuned: FinetunedAgent | None = None) ->
 
         def do_POST(self) -> None:
             parts = self.path.strip("/").split("/")
-            game_id = "tictactoe" if self.path == "/api/decision" else (
-                parts[2] if len(parts) == 4 and parts[:2] == ["api", "games"] and parts[3] == "decision" else None)
+            legacy = self.path == "/api/decision"
+            decision_route = len(parts) == 4 and parts[:2] == ["api", "games"] and parts[3] == "decision"
+            state_route = len(parts) == 4 and parts[:2] == ["api", "games"] and parts[3] == "state"
+            game_id = "tictactoe" if legacy else parts[2] if decision_route or state_route else None
             game = games.get(game_id)
             if game is None:
                 self.send_json(404, {"error": "Not found"})
@@ -66,14 +83,21 @@ def make_handler(player: LayaPlayer, finetuned: FinetunedAgent | None = None) ->
                 payload = json.loads(self.rfile.read(length))
                 if not isinstance(payload, dict):
                     raise ValueError("Expected an object")
-                prepared = game.prepare(payload)
+                if state_route:
+                    if not hasattr(game, "state"): raise ValueError("Game has no state endpoint")
+                    response = game.state(payload)
+                else:
+                    prepared = game.prepare(payload)
             except (ValueError, TypeError):
                 self.send_json(400, {"error": "Invalid board or request"})
                 return
             try:
-                with inference_lock:
-                    decision = game.decide(prepared)
-                self.send_json(200, decision)
+                if state_route:
+                    self.send_json(200, response)
+                else:
+                    with inference_lock:
+                        decision = game.decide(prepared)
+                    self.send_json(200, decision)
             except Exception:
                 LOGGER.exception("Laya inference failed")
                 self.send_json(
@@ -92,8 +116,9 @@ def main() -> None:
     finetuned = None
     if (args.checkpoint / "model.safetensors").is_file():
         finetuned = FinetunedAgent(str(args.checkpoint.resolve()), device=args.device)
+    shared_router = SharedRouter(args.device)
     server = ThreadingHTTPServer(("127.0.0.1", args.port),
-                                 make_handler(LayaPlayer(device=args.device), finetuned))
+                                 make_handler(LayaPlayer(device=args.device, router=shared_router), finetuned))
     print(
         f"Open http://127.0.0.1:{server.server_port} — Ctrl+C to stop", flush=True)
     try:

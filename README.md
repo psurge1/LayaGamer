@@ -1,9 +1,29 @@
 # LayaGamer
 
+## Games
+
+The web dashboard includes four games:
+
+- **Tic-tac-toe:** human versus the original tactical or fine-tuned agent.
+- **Snake:** step or auto play; the harness supplies collision, relative food
+  bearing, shortest visible food routes, and reachable-space context, and
+  filters immediate deaths when possible.
+- **Minesweeper:** step or auto play; the harness derives safe cells, certain
+  mines, and risk estimates from the visible numbered board. Laya never receives
+  the hidden mine coordinates.
+- **Chess:** human versus tactical Laya as White or Black. The `chess` package
+  (python-chess 1.11.2) owns legal moves, transitions, checks, castling,
+  promotions, checkmate, stalemate, and draw outcomes. The harness supplies SAN,
+  captures, checks, attacked destinations, and reply counts.
+
+Snake and Minesweeper are intentionally step-based so every inference appears
+in the shared decision inspector. Their **Auto play** controls repeatedly request
+the same observable decisions. The web server lazily shares one base Laya Router
+across all tactical agents; the fine-tuned tic-tac-toe checkpoint remains separate.
+
 ## Adding another game to the dashboard
 
-The Game selector lists implemented games. Tic-tac-toe is currently the only
-playable game; Snake and Minesweeper are extension examples, not shipped modes.
+The Game selector lists implemented games.
 The dashboard remains vanilla JavaScript with native ES modules.
 
 1. Add a `static/games/<game>.js` module exporting
@@ -30,13 +50,19 @@ The dashboard retains its dark lab palette with compact typography, a subdued
 board surface, and an open analysis column. Styles live in
 `src/layagamer/static/style.css`; refresh the browser to see visual updates.
 
-Both agents sample moves from model probabilities at temperature 0.5 by default.
+Runtime agents sample moves from model probabilities with a moderate temperature by default.
 This favors stronger-scoring choices while allowing variation. Tactical sampling
 stays within the win/block constraints; a forced move remains deterministic.
 Agent constructors accept `temperature=0` for the previous argmax behavior and
 `seed` for reproducible sampling. Dashboard bars show the sampling distribution;
 logs retain original model probabilities and the model's top choice separately.
 Sampling adds variety, not learned competence, and can reduce playing strength.
+
+Laya's probability output is deterministic for the same checkpoint and request;
+it does not learn during a game. Snake uses temperature `1.0`, preserving rather
+than sharpening that distribution when sampling. On CPU, model inference remains
+the dominant per-step cost; the web auto-player adds only a short scheduling
+pause between decisions and reports inference latency separately.
 
 Gameplay observation (2026-09-28): the user reports that the tactical agent
 substantially outperforms the current fine-tuned checkpoint, which plays poorly.
@@ -83,8 +109,8 @@ uv run layagamer-web
 uv run python -m layagamer.web
 ```
 
-Open http://127.0.0.1:8000. Play as X or O, start a new game, and inspect
-either agent using the Opponent selector. The dashboard automatically enables
+Open http://127.0.0.1:8000 and select a game. Each game exposes its applicable
+controls and agent choices. The dashboard automatically enables
 Fine-tuned Laya when `artifacts/tictactoe/checkpoint/model.safetensors` exists;
 use `--checkpoint PATH` for a different local checkpoint. Changing agents starts
 a fresh game. Restart the server after training to load new weights.
@@ -126,9 +152,10 @@ guard, not a full-game solver or learning system.
 Repeated states can still produce repeated choices. Game understanding and optimal play are not
 guaranteed. The engine validates actions and detects wins and draws.
 
-`tictactoe.py` owns state and rules, `agent.py` translates observations and legal
-actions into predictions, and `main.py` runs matches. This boundary provides a
-starting point for future game adapters. No diep.io automation is implemented yet.
+`games/tictactoe/engine.py` owns state and rules,
+`games/tictactoe/agents/tactical.py` translates observations and legal actions
+into predictions, and `main.py` runs terminal matches. Compatibility modules
+preserve the original import paths. No diep.io automation is implemented yet.
 
 The English checkpoint loads on the first prediction, using the default Laya
 device unless `--device` is supplied. First use may download weights; later runs

@@ -5,7 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from layagamer.tictactoe import Board
+from .engine import Board
 from layagamer.games.tictactoe.agents.finetuned import build_request, ENCODING_VERSION
 
 

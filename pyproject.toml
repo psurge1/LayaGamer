@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "chess>=1.11.2",
     "laya>=0.3.20",
 ]
 

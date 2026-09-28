@@ -2,7 +2,7 @@
 import argparse
 
 from layagamer.games.tictactoe.agents.finetuned import FinetunedAgent
-from layagamer.tictactoe import Board
+from .engine import Board
 
 
 def main() -> None:
