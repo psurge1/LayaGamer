@@ -1,5 +1,35 @@
 # LayaGamer
 
+## Adding another game to the dashboard
+
+The Game selector lists implemented games. Tic-tac-toe is currently the only
+playable game; Snake and Minesweeper are extension examples, not shipped modes.
+The dashboard remains vanilla JavaScript with native ES modules.
+
+1. Add a `static/games/<game>.js` module exporting
+   `mount(root, {config, inspector})`. It owns its controls, observation/action
+   format, and timing (turns, keyboard input, or a timer). Return a cleanup
+   function that cancels requests/timers, removes listeners, and ignores late
+   responses. Scope game CSS beneath `[data-game="<game>"]`.
+2. Use `inspector.render(records, selectedIndex, onSelect)` to show decisions.
+   Each display record has `label`, `latencyMs`, `snapshot` (text), `note`, `raw`,
+   and `choices`. Choices have `label`, `offered`, `selected`, `probability`, and
+   optional `description`. This is presentation data, not a universal game state.
+3. Add a server adapter in `games/<game>/web.py` with `describe()`,
+   `prepare(payload)` (validation), and `decide(prepared)` (inference).
+   Register it in the small `games` mapping in `web.py`, import its browser
+   module in `static/app.js`, and allowlist its asset route in `web.py`.
+   `/api/games` supplies game/agent labels; decisions use
+   `/api/games/<game>/decision`. The old tic-tac-toe endpoints remain compatible.
+
+Game-specific controls and the board live in the game view; history, histograms,
+and request details are shared. Agents and checkpoints retain their existing
+behavior. Run frontend checks with `node --test tests/frontend.test.mjs`.
+
+The dashboard retains its dark lab palette with compact typography, a subdued
+board surface, and an open analysis column. Styles live in
+`src/layagamer/static/style.css`; refresh the browser to see visual updates.
+
 Both agents sample moves from model probabilities at temperature 0.5 by default.
 This favors stronger-scoring choices while allowing variation. Tactical sampling
 stays within the win/block constraints; a forced move remains deterministic.

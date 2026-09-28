@@ -20,6 +20,8 @@ These definitions describe LayaGamer's vocabulary, not required classes or modul
 | Checkpoint | Saved model weights and associated configuration/tokenizer artifacts used for inference. |
 | Backend | The inference implementation that loads a checkpoint and executes predictions. |
 | Runner | Drives turns or game steps, obtains agent decisions, applies actions, and records outcomes. |
+| Game view | A browser module that owns a game's workspace, controls, and run loop. Mounting returns a cleanup function for switching games. |
+| Decision inspector | Shared browser presentation of history, snapshots, action probabilities, and diagnostics. Games translate their records into display data; the inspector does not interpret game rules. |
 | Evaluation | Measures a specified agent's performance, identifying the checkpoint and enabled harness aids. |
 | Model-only evaluation | Tests learned decisions with tactical suppliers, constraints, overrides, and solver fallbacks disabled; basic observation encoding and legality validation remain. |
 | Fine-tuning | Updating model weights using task-specific training data/objectives. Ordinary inference calls do not perform fine-tuning. |

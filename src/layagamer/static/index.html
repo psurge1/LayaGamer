@@ -1,21 +1,14 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Laya • Tic-tac-toe lab</title><link rel="stylesheet" href="/style.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Laya • Game lab</title><link rel="stylesheet" href="/style.css"></head>
 <body>
 <header><span class="brand">LAYA<span class="dot">●</span> GAMER</span><span class="tag">LOCAL INFERENCE LAB</span></header>
 <main>
-<section class="intro"><p class="eyebrow">EXPERIMENT 01 / TIC-TAC-TOE</p><h1>Your move.<br><span>Watch Laya respond.</span></h1><p>A live game and a closer look at the choices behind each move.</p></section>
+<section class="intro"><p id="game-label" class="eyebrow">GAME LAB</p><h1>Your move.<br> <span>Watch Laya respond.</span></h1><p>A live game and a closer look at the choices behind each move.</p></section>
+<div class="game-picker"><label>Game <select id="game-select" disabled aria-label="Game"></select></label></div>
 <div class="layout">
-<section class="panel game"><div class="section-head"><h2>The board</h2><span id="turn-badge" class="tag">X FIRST</span></div>
-<div class="controls"><label>You play <select id="human-mark"><option value="X">X — first</option><option value="O">O — second</option></select></label><button id="new-game">New game</button></div>
-<div class="controls"><label>Opponent <select id="agent"><option value="finetuned" selected>Fine-tuned Laya</option><option value="tactical">Tactical Laya</option></select></label></div>
-<p id="status" role="status" aria-live="polite">Your turn. Choose an empty square.</p>
-<div id="board" class="board" aria-label="Tic-tac-toe board"></div>
-<button id="retry" hidden>Retry Laya's turn</button>
-<div class="legend"><span><i class="human-dot"></i>You</span><span><i class="laya-dot"></i>Laya</span></div>
-<p id="agent-description" class="footnote"></p>
-</section>
-<section class="panel analysis"><div class="section-head"><h2>Choice probabilities</h2><span id="latency" class="tag">AWAITING MOVE</span></div>
+<section id="game-root" class="panel game" aria-label="Game workspace">Loading games…</section>
+<section id="analysis" class="panel analysis"><div class="section-head"><h2>Choice probabilities</h2><span id="latency" class="tag">AWAITING MOVE</span></div>
 <p class="muted">Select a decision to inspect its board, probabilities, and supplied context.</p>
 <div id="history" class="history" aria-label="Decision history"></div>
 <div id="snapshot" class="snapshot"></div>
@@ -23,8 +16,8 @@
 <div id="chart" class="chart" aria-label="Choice probability histogram"></div>
 <div id="context"></div>
 <details id="request-details" hidden><summary>Full inference request & response</summary><pre id="request"></pre></details>
-<p class="footnote">Bars show sampling probabilities over offered choices, not a reasoning trace or a guarantee of accuracy. Filtered actions are never sampled. A single offered win or block receives 100% because of the harness constraint.</p>
+<p class="footnote">Bars show sampling probabilities over offered choices, not a reasoning trace or a guarantee of accuracy. Filtered actions are never sampled. A single offered action receives 100% because of the harness constraint.</p>
 </section>
 </div>
-</main><script src="/app.js"></script>
+</main><script type="module" src="/app.js"></script>
 </body></html>

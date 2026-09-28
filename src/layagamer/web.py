@@ -8,7 +8,7 @@ from pathlib import Path
 from threading import Lock
 
 from layagamer.agent import LayaPlayer
-from layagamer.tictactoe import Board
+from layagamer.games.tictactoe.web import TicTacToeWeb
 from layagamer.games.tictactoe.agents.finetuned import FinetunedAgent
 
 LOGGER = logging.getLogger(__name__)
@@ -17,6 +17,7 @@ ASSETS = Path(__file__).with_name("static")
 
 def make_handler(player: LayaPlayer, finetuned: FinetunedAgent | None = None) -> type[BaseHTTPRequestHandler]:
     inference_lock = Lock()
+    games = {"tictactoe": TicTacToeWeb(player, finetuned)}
 
     class Handler(BaseHTTPRequestHandler):
         def send_payload(self, status: int, payload: bytes, content_type: str) -> None:
@@ -32,11 +33,16 @@ def make_handler(player: LayaPlayer, finetuned: FinetunedAgent | None = None) ->
                 payload).encode(), "application/json")
 
         def do_GET(self) -> None:
+            if self.path == "/api/games":
+                self.send_json(200, {"games": [game.describe() for game in games.values()]})
+                return
             if self.path == "/api/agents":
                 self.send_json(200, {"finetuned_available": finetuned is not None})
                 return
             assets = {"/": ("index.html", "text/html; charset=utf-8"),
                       "/app.js": ("app.js", "text/javascript; charset=utf-8"),
+                      "/inspector.js": ("inspector.js", "text/javascript; charset=utf-8"),
+                      "/games/tictactoe.js": ("games/tictactoe.js", "text/javascript; charset=utf-8"),
                       "/style.css": ("style.css", "text/css; charset=utf-8")}
             asset = assets.get(self.path)
             if asset is None:
@@ -46,7 +52,11 @@ def make_handler(player: LayaPlayer, finetuned: FinetunedAgent | None = None) ->
             self.send_payload(200, (ASSETS / name).read_bytes(), mime)
 
         def do_POST(self) -> None:
-            if self.path != "/api/decision":
+            parts = self.path.strip("/").split("/")
+            game_id = "tictactoe" if self.path == "/api/decision" else (
+                parts[2] if len(parts) == 4 and parts[:2] == ["api", "games"] and parts[3] == "decision" else None)
+            game = games.get(game_id)
+            if game is None:
                 self.send_json(404, {"error": "Not found"})
                 return
             try:
@@ -54,29 +64,15 @@ def make_handler(player: LayaPlayer, finetuned: FinetunedAgent | None = None) ->
                 if not 0 < length <= 4096:
                     raise ValueError("Invalid request size")
                 payload = json.loads(self.rfile.read(length))
-                if not isinstance(payload, dict) or not isinstance(payload.get("cells"), list):
-                    raise ValueError("Expected board cells")
-                board = Board(tuple(payload["cells"]),
-                              payload.get("turn", "X"))
-                if board.finished:
-                    raise ValueError("Game is already finished")
-                agent_name = payload.get("agent", "tactical")
-                if agent_name not in ("tactical", "finetuned"):
-                    raise ValueError("Unknown agent")
+                if not isinstance(payload, dict):
+                    raise ValueError("Expected an object")
+                prepared = game.prepare(payload)
             except (ValueError, TypeError):
                 self.send_json(400, {"error": "Invalid board or request"})
                 return
-            if agent_name == "finetuned" and finetuned is None:
-                self.send_json(400, {"error": "No fine-tuned checkpoint configured. Restart with --checkpoint PATH."})
-                return
             try:
                 with inference_lock:
-                    if agent_name == "finetuned":
-                        result = finetuned.decide(board)
-                        decision = {**result.metadata, "move": result.action}
-                    else:
-                        decision = {**player.choose(board), "agent": "tactical"}
-                    decision["legal_moves"] = list(board.legal_moves)
+                    decision = game.decide(prepared)
                 self.send_json(200, decision)
             except Exception:
                 LOGGER.exception("Laya inference failed")
@@ -87,7 +83,7 @@ def make_handler(player: LayaPlayer, finetuned: FinetunedAgent | None = None) ->
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Local tic-tac-toe dashboard")
+    parser = argparse.ArgumentParser(description="Local Laya game dashboard")
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--device", help="cpu, mps, or cuda")
     parser.add_argument("--checkpoint", type=Path, default=Path("artifacts/tictactoe/checkpoint"),
