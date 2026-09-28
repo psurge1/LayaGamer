@@ -8,10 +8,13 @@ export function createInspector(root) {
       button.className = selected === index ? 'active' : ''; button.onclick = () => onSelect(index);
       $('history').append(button);
     });
+    if (selected === records.length - 1 && Number.isFinite($('history').scrollWidth)) {
+      $('history').scrollLeft = $('history').scrollWidth;
+    }
     const record = records[selected];
     $('request-details').hidden = !record;
     $('request').textContent = record ? JSON.stringify(record.raw, null, 2) : '';
-    $('latency').textContent = record ? `${record.latencyMs.toFixed(0)} MS` : 'AWAITING MOVE';
+    $('latency').textContent = record ? `INFERENCE ${record.latencyMs.toFixed(0)} MS` : 'NO INFERENCE YET';
     $('snapshot').textContent = record?.snapshot || '';
     $('chart-note').textContent = record?.note || "Laya's first decision will appear here.";
     if (!record) return;

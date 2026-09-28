@@ -14,6 +14,7 @@ config.agents.forEach(agent => {
   const option = document.createElement('option'); option.value = agent.id; option.textContent = agent.label;
   $('agent').append(option);
 });
+if (config.agents.some(agent => agent.id === 'tactical')) $('agent').value = 'tactical';
 const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 let cells, turn, human, busy, records, selected, generation = 0;
 let disposed = false, pending = null;

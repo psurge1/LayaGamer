@@ -2,21 +2,19 @@
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Laya • Game lab</title><link rel="stylesheet" href="/style.css"></head>
 <body>
-<header><span class="brand">LAYA<span class="dot">●</span> GAMER</span><span class="tag">LOCAL INFERENCE LAB</span></header>
+<header><span class="brand">LAYA GAMER</span></header>
 <main>
-<section class="intro"><p id="game-label" class="eyebrow">GAME LAB</p><h1>Your move.<br> <span>Watch Laya respond.</span></h1><p>A live game and a closer look at the choices behind each move.</p></section>
+<section class="intro"><h1 id="game-title">Loading game…</h1></section>
 <div class="game-picker"><label>Game <select id="game-select" disabled aria-label="Game"></select></label></div>
 <div class="layout">
 <section id="game-root" class="panel game" aria-label="Game workspace">Loading games…</section>
-<section id="analysis" class="panel analysis"><div class="section-head"><h2>Choice probabilities</h2><span id="latency" class="tag">AWAITING MOVE</span></div>
-<p class="muted">Select a decision to inspect its board, probabilities, and supplied context.</p>
+<section id="analysis" class="panel analysis"><div class="section-head"><h2>Choice probabilities</h2><span id="latency">NO INFERENCE YET</span></div>
 <div id="history" class="history" aria-label="Decision history"></div>
 <div id="snapshot" class="snapshot"></div>
 <p id="chart-note" class="muted">Laya's first decision will appear here.</p>
 <div id="chart" class="chart" aria-label="Choice probability histogram"></div>
 <div id="context"></div>
 <details id="request-details" hidden><summary>Full inference request & response</summary><pre id="request"></pre></details>
-<p class="footnote">Bars show sampling probabilities over offered choices, not a reasoning trace or a guarantee of accuracy. Filtered actions are never sampled. A single offered action receives 100% because of the harness constraint.</p>
 </section>
 </div>
 </main><script type="module" src="/app.js"></script>

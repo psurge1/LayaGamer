@@ -26,8 +26,9 @@ async function initialize() {
     function selectGame() {
       dispose(); inspector.render();
       const config = available.find(game => game.id === selector.value);
+      document.documentElement.dataset.activeGame = config.id;
       document.title = `Laya • ${config.label}`;
-      document.getElementById('game-label').textContent = `GAME LAB / ${config.label.toUpperCase()}`;
+      document.getElementById('game-title').textContent = config.label;
       dispose = gameViews[config.id](root, {config, inspector});
     }
     selector.disabled = false; selector.onchange = selectGame; selectGame();

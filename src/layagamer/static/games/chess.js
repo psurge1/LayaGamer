@@ -1,4 +1,18 @@
-const pieceLetter={p:'P',n:'N',b:'B',r:'R',q:'Q',k:'K'};
+const svgNamespace='http://www.w3.org/2000/svg';
+const pieceShapes={
+  p:'<circle cx="22.5" cy="11.5" r="5.2"/><path d="M18 18h9c0 5 2 8 5 11l2 7H11l2-7c3-3 5-6 5-11z"/><path class="piece-detail" d="M14 29h17M12 36h21"/>',
+  r:'<path d="M11 7h6v5h4V7h4v5h4V7h6v10l-4 4v11l4 5H10l4-5V21l-3-4z"/><path class="piece-detail" d="M14 18h17M14 31h17"/>',
+  n:'<path d="M11 37h26c-1-6-4-11-9-14 3-5 3-10 0-16-8 1-13 5-16 12l-5 7 8-2c2 5 0 9-4 13z"/><circle class="piece-eye" cx="22" cy="14" r="1.5"/>',
+  b:'<path d="M22.5 6c6 5 8 10 4 15 4 3 6 7 6 11l3 5h-26l3-5c0-4 2-8 6-11-4-5-2-10 4-15z"/><path class="piece-detail" d="M25.5 10 20 18M13 31h19"/>',
+  q:'<circle cx="9" cy="10" r="2.4"/><circle cx="18" cy="7" r="2.4"/><circle cx="27" cy="7" r="2.4"/><circle cx="36" cy="10" r="2.4"/><path d="m10 14 6 12 2-15 5 14 4-14 2 15 6-12-3 18 3 5H10l3-5-3-18z"/><path class="piece-detail" d="M13 31h19"/>',
+  k:'<path class="piece-detail cross" d="M22.5 4v10M18.5 8h8"/><path d="M22.5 13c4 0 7 3 7 7 0 2-1 4-3 6 4 1 6 4 6 7l3 4h-26l3-4c0-3 2-6 6-7-2-2-3-4-3-6 0-4 3-7 7-7z"/><path class="piece-detail" d="M13 32h19"/>'
+};
+function createPiece(piece){
+  const svg=document.createElementNS(svgNamespace,'svg');
+  svg.setAttribute('viewBox','0 0 45 45');svg.setAttribute('aria-hidden','true');
+  svg.classList.add('chess-piece',piece.color);svg.innerHTML=pieceShapes[piece.symbol.toLowerCase()];
+  return svg;
+}
 export function mount(root,{config,inspector}){
   root.dataset.game='chess';root.innerHTML=`<div class="section-head"><h2>The board</h2><span id="chess-turn" class="tag"></span></div>
     <div class="controls"><label>You play <select id="chess-color"><option value="white">White — first</option><option value="black">Black — second</option></select></label><button id="chess-new">New game</button></div>
@@ -10,7 +24,7 @@ export function mount(root,{config,inspector}){
   function render(){if(!position)return;const pieces=new Map(position.pieces.map(p=>[p.square,p]));$('chess-board').replaceChildren();for(const square of orderedSquares()){
     const button=document.createElement('button'),piece=pieces.get(square),legalFrom=position.legal_moves.some(move=>move.startsWith(square));
     button.className=`chess-square ${((square.charCodeAt(0)-97)+Number(square[1]))%2?'dark':'light'}`+(selectedSquare===square?' selected-square':'');
-    if(piece){const token=document.createElement('span');token.className=`chess-piece ${piece.color}`;token.textContent=pieceLetter[piece.symbol.toLowerCase()];button.append(token);}
+    if(piece)button.append(createPiece(piece));
     button.setAttribute('aria-label',`${square}${piece?' '+piece.color+' '+piece.symbol:''}`);
     button.disabled=busy||position.finished||position.turn!==human||(!selectedSquare&&!legalFrom);button.onclick=()=>clickSquare(square);$('chess-board').append(button);}
     $('chess-turn').textContent=position.finished?'GAME OVER':`${position.turn.toUpperCase()} TO MOVE`;$('chess-status').textContent=status();}

@@ -49,6 +49,9 @@ behavior. Run frontend checks with `node --test tests/frontend.test.mjs`.
 The dashboard retains its dark lab palette with compact typography, a subdued
 board surface, and an open analysis column. Styles live in
 `src/layagamer/static/style.css`; refresh the browser to see visual updates.
+Snake updates its existing board cells in place and keeps decision history on a
+stable horizontal row to avoid layout jumps during auto play. Chess pieces are
+rendered as local SVG silhouettes, independent of platform symbol fonts.
 
 Runtime agents sample moves from model probabilities with a moderate temperature by default.
 This favors stronger-scoring choices while allowing variation. Tactical sampling

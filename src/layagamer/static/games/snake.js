@@ -7,7 +7,7 @@ export function mount(root, {config, inspector}) {
     <p class="footnote">Laya chooses left, straight, or right from route, food-bearing, and escape-space context. Fatal moves are filtered when a safe move exists.</p>`;
   const $ = id => root.querySelector(`#${id}`);
   const width = 10, height = 10;
-  let snake, direction, food, score, alive, busy, auto, timer, pending, records, selected, lastLatency, generation = 0, seed = 1;
+  let snake, direction, food, score, alive, busy, auto, timer, pending, records, selected, lastLatency, boardCells, generation = 0, seed = 1;
   const vectors = {up:[0,-1],right:[1,0],down:[0,1],left:[-1,0]};
   const turns = {up:{left:'left',straight:'up',right:'right'},right:{left:'up',straight:'right',right:'down'},down:{left:'right',straight:'down',right:'left'},left:{left:'down',straight:'left',right:'up'}};
   const key = ([x,y]) => `${x},${y}`;
@@ -19,11 +19,14 @@ export function mount(root, {config, inspector}) {
   }
   function render() {
     const occupied = new Map(snake.map((p,i)=>[key(p),i]));
-    $('snake-board').style.setProperty('--columns', width); $('snake-board').replaceChildren();
+    if (!boardCells?.length) {
+      $('snake-board').style.setProperty('--columns', width);
+      boardCells=Array.from({length:width*height},()=>document.createElement('span'));
+      $('snake-board').replaceChildren(...boardCells);
+    }
     for (let y=0;y<height;y++) for (let x=0;x<width;x++) {
-      const cell=document.createElement('span'), index=occupied.get(`${x},${y}`);
+      const cell=boardCells[y*width+x], index=occupied.get(`${x},${y}`);
       cell.className='snake-cell'+(index===0?' head':index!==undefined?' body':food[0]===x&&food[1]===y?' food':'');
-      $('snake-board').append(cell);
     }
     $('snake-score').textContent=`SCORE ${score}`;
     $('snake-step').disabled=busy||!alive; $('snake-auto').disabled=!alive;
@@ -54,7 +57,7 @@ export function mount(root, {config, inspector}) {
       note:`Snake tactical harness · ${record.state.action_constraint.replaceAll('_',' ')}.`,
       choices:record.legal_moves.map(move=>({label:move,offered:move in offered,selected:move===record.move,probability:probs[move],description:offered[move]||'Filtered because this move dies immediately.'})),raw:record};}
   function renderAnalysis(){inspector.render(records.map(present),selected,index=>{selected=index;renderAnalysis();});}
-  function newGame(){generation++;pending?.abort();clearTimeout(timer);seed++;snake=[[4,5],[3,5],[2,5]];direction='right';score=0;alive=true;busy=false;auto=false;food=[7,5];records=[];selected=-1;lastLatency=null;render();renderAnalysis();}
+  function newGame(){generation++;pending?.abort();clearTimeout(timer);seed++;snake=[[4,5],[3,5],[2,5]];direction='right';score=0;alive=true;busy=false;auto=false;food=[7,5];records=[];selected=-1;lastLatency=null;boardCells=null;render();renderAnalysis();}
   $('snake-step').onclick=step;$('snake-auto').onclick=()=>{auto=!auto;render();if(auto)step();};$('snake-new').onclick=newGame;newGame();
   return()=>{generation++;pending?.abort();clearTimeout(timer);root.replaceChildren();delete root.dataset.game;};
 }

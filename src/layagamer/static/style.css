@@ -22,24 +22,18 @@ body {
 header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 20px;
   padding: 19px max(28px, calc((100vw - 1144px) / 2));
   border-bottom: 1px solid var(--line);
 }
 .brand { font-size: 13px; font-weight: 700; letter-spacing: 1.3px; }
-.dot { color: var(--lime); margin: 0 6px; font-size: 9px; vertical-align: middle; }
-.tag, .eyebrow { font: 11px/1.5 var(--mono); color: var(--muted); }
+.tag { font: 11px/1.5 var(--mono); color: var(--muted); }
 .tag { letter-spacing: .4px; text-align: right; }
-.eyebrow { letter-spacing: 1px; margin: 0 0 10px; }
 main { max-width: 1200px; margin: auto; padding: 30px 28px 56px; }
-.intro { margin-bottom: 30px; }
+.intro { margin-bottom: 24px; }
 h1 { font-size: clamp(26px, 3vw, 34px); font-weight: 550; line-height: 1.22; letter-spacing: -.9px; margin: 0; }
-h1 br { display: none; }
-h1 span { color: var(--muted); }
-.intro > p:last-child { margin: 10px 0 0; color: var(--muted); max-width: 60ch; }
 .muted { color: var(--muted); }
-.game-picker { margin: -10px 0 22px; }
+.game-picker { margin: 0 0 22px; }
 .game-picker label { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; }
 .game-picker select { min-width: 170px; }
 
@@ -50,6 +44,13 @@ h1 span { color: var(--muted); }
 .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
 h2 { font-size: 17px; font-weight: 600; letter-spacing: -.2px; margin: 0; }
 .analysis > .muted { margin: 8px 0 18px; font-size: 13px; max-width: 66ch; }
+#latency {
+  color: var(--lime);
+  font: 500 18px/1.25 var(--mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .3px;
+  white-space: nowrap;
+}
 
 button, select {
   font: inherit;
@@ -97,9 +98,19 @@ button:disabled { cursor: default; opacity: 1; }
 }
 [data-game="snake"] .snake-cell,
 [data-game="minesweeper"] .mine-cell { aspect-ratio: 1; min-width: 0; background: #242d30; }
+[data-game="snake"] .snake-cell { transition: background-color 150ms ease, transform 150ms ease; }
 [data-game="snake"] .snake-cell.body { background: #78934f; }
 [data-game="snake"] .snake-cell.head { background: var(--lime); }
 [data-game="snake"] .snake-cell.food { background: var(--blue); border-radius: 50%; transform: scale(.62); }
+[data-game="snake"] #snake-status {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  margin: 10px 0 0;
+  color: var(--lime);
+  font-size: 13px;
+}
+[data-game="snake"] #snake-auto { min-width: 78px; }
 [data-game="minesweeper"] .mine-cell { display: grid; place-items: center; font: 600 12px/1 var(--mono); }
 [data-game="minesweeper"] .mine-cell.hidden { background: #344044; box-shadow: inset 0 0 0 1px #48565a; }
 [data-game="minesweeper"] .mine-cell.revealed { background: #151b1d; }
@@ -132,27 +143,41 @@ button:disabled { cursor: default; opacity: 1; }
 [data-game="chess"] .chess-square:hover:not(:disabled) { background: #566a60; }
 [data-game="chess"] .chess-square.selected-square { box-shadow: inset 0 0 0 3px var(--lime); }
 [data-game="chess"] .chess-piece {
-  display: grid;
-  place-items: center;
-  width: 68%;
-  aspect-ratio: 1;
-  border: 1px solid;
-  border-radius: 50%;
-  font: 700 clamp(17px, 3.2vw, 25px)/1 var(--mono);
-  letter-spacing: -.04em;
+  width: 84%;
+  height: 84%;
+  overflow: visible;
+  fill: var(--piece-fill);
+  stroke: var(--piece-outline);
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 [data-game="chess"] .chess-piece.white {
-  color: #222a2c;
-  background: #eee9dc;
-  border-color: #fffdf5;
-  box-shadow: 0 1px 0 rgba(10, 14, 15, .35);
+  --piece-fill: #f3efe4;
+  --piece-outline: #20282a;
 }
 [data-game="chess"] .chess-piece.black {
-  color: #d8f09e;
-  background: #1b2426;
-  border-color: #0e1314;
-  box-shadow: inset 0 0 0 1px #344043;
+  --piece-fill: #172022;
+  --piece-outline: #d7e1d2;
 }
+[data-game="chess"] .piece-detail { fill: none; stroke: var(--piece-outline); }
+[data-game="chess"] .piece-eye { fill: var(--piece-outline); stroke: none; }
+[data-game="chess"] .cross { stroke-width: 2; }
+
+/* Snake updates frequently; reserve its analysis geometry so text never
+   pushes the board or neighboring content around between decisions. */
+html[data-active-game="snake"] .history {
+  min-height: 36px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+html[data-active-game="snake"] .history button { flex: 0 0 auto; }
+html[data-active-game="snake"] .snapshot { min-height: 40px; }
+html[data-active-game="snake"] #chart-note { min-height: 40px; }
+html[data-active-game="snake"] .chart { min-height: 111px; }
+html[data-active-game="snake"] .context-item { min-height: 58px; }
 .footnote { font-size: 12px; line-height: 1.6; color: var(--muted); max-width: 72ch; margin: 24px 0 0; }
 #agent-description { margin-top: 18px; }
 
@@ -192,13 +217,11 @@ pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 11px/1.6 var(--mono)
   .game { padding: 20px; }
   .analysis { padding-top: 18px; }
   [data-game="tictactoe"] .cell { font-size: 46px; }
-  [data-game="chess"] .chess-piece { font-size: clamp(15px, 5vw, 23px); }
 }
 
 @media (max-width: 400px) {
   header { gap: 12px; }
   header > .tag { max-width: 100px; font-size: 10px; }
-  h1 span { display: block; }
   .section-head { flex-wrap: wrap; gap: 4px 12px; }
   .bar-row { gap: 8px; }
 }
