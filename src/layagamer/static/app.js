@@ -31,6 +31,7 @@ async function initialize() {
       document.getElementById('game-title').textContent = config.label;
       dispose = gameViews[config.id](root, {config, inspector});
     }
+    if (available.some(game => game.id === 'snake')) selector.value = 'snake';
     selector.disabled = false; selector.onchange = selectGame; selectGame();
   } catch (error) { root.textContent = error.message; }
 }
