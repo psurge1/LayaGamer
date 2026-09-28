@@ -45,11 +45,20 @@ h1 { font-size: clamp(26px, 3vw, 34px); font-weight: 550; line-height: 1.22; let
 h2 { font-size: 17px; font-weight: 600; letter-spacing: -.2px; margin: 0; }
 .analysis > .muted { margin: 8px 0 18px; font-size: 13px; max-width: 66ch; }
 #latency {
-  color: var(--lime);
-  font: 500 18px/1.25 var(--mono);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--muted);
+  font: 11px/1.25 var(--mono);
   font-variant-numeric: tabular-nums;
   letter-spacing: .3px;
   white-space: nowrap;
+}
+#latency-value {
+  color: var(--lime);
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -1px;
 }
 
 button, select {

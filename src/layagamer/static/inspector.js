@@ -14,7 +14,9 @@ export function createInspector(root) {
     const record = records[selected];
     $('request-details').hidden = !record;
     $('request').textContent = record ? JSON.stringify(record.raw, null, 2) : '';
-    $('latency').textContent = record ? `INFERENCE ${record.latencyMs.toFixed(0)} MS` : 'NO INFERENCE YET';
+    const latencyValue = $('latency-value');
+    if (latencyValue) latencyValue.textContent = record ? record.latencyMs.toFixed(0) : '—';
+    else $('latency').textContent = record ? `INFERENCE ${record.latencyMs.toFixed(0)} MS` : 'NO INFERENCE YET';
     $('snapshot').textContent = record?.snapshot || '';
     $('chart-note').textContent = record?.note || "Laya's first decision will appear here.";
     if (!record) return;
