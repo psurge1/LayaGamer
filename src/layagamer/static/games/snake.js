@@ -1,3 +1,5 @@
+import {requestJson} from '../api.js';
+
 export function mount(root, {config, inspector}) {
   root.dataset.game = 'snake';
   root.innerHTML = `<div class="section-head"><h2>The arena</h2><span id="snake-score" class="tag">SCORE 0</span></div>
@@ -44,8 +46,8 @@ export function mount(root, {config, inspector}) {
   async function step() {
     if(busy||!alive)return; const current=generation; busy=true;pending=new AbortController();render();
     try {
-      const response=await fetch(`/api/games/${config.id}/decision`,{method:'POST',signal:pending.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({agent:'tactical',width,height,snake,direction,food,score})});
-      const decision=await response.json(); if(current!==generation)return;
+      const {response,data:decision}=await requestJson(`api/games/${config.id}/decision`,{method:'POST',signal:pending.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({agent:'tactical',width,height,snake,direction,food,score})});
+      if(current!==generation)return;
       if(!response.ok)throw new Error(decision.error||'Decision failed');
       records.push(decision);selected=records.length-1;lastLatency=decision.latency_ms;apply(decision.move);busy=false;render();renderAnalysis();
       if(auto&&alive)timer=setTimeout(step,60);

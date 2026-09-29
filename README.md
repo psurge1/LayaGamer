@@ -53,6 +53,20 @@ Snake updates its existing board cells in place and keeps decision history on a
 stable horizontal row to avoid layout jumps during auto play. Chess pieces are
 rendered as local SVG silhouettes, independent of platform symbol fonts.
 
+### GitHub Pages
+
+`.github/workflows/pages.yml` publishes `src/layagamer/static` to GitHub Pages
+after every push to `main`, and can also be run manually. In the repository's
+**Settings → Pages**, select **GitHub Actions** as the build source once, then
+push the workflow to GitHub.
+
+GitHub Pages hosts only the static HTML, CSS, and JavaScript. It cannot run the
+Python server or local Laya checkpoint, so the hosted page shows a clear backend
+requirement instead of a broken game. Local gameplay remains available through
+`uv run python -m layagamer.web`. The frontend resolves assets and API paths
+relative to its deployment directory, so project Pages URLs such as
+`https://<owner>.github.io/<repository>/` load correctly.
+
 Runtime agents sample moves from model probabilities with a moderate temperature by default.
 This favors stronger-scoring choices while allowing variation. Tactical sampling
 stays within the win/block constraints; a forced move remains deterministic.

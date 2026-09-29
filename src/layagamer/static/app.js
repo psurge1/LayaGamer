@@ -1,4 +1,5 @@
 import {createInspector} from './inspector.js';
+import {requestJson} from './api.js';
 import {mount as mountTicTacToe} from './games/tictactoe.js';
 import {mount as mountSnake} from './games/snake.js';
 import {mount as mountMinesweeper} from './games/minesweeper.js';
@@ -14,9 +15,9 @@ let dispose = () => {};
 
 async function initialize() {
   try {
-    const response = await fetch('/api/games');
+    const {response, data} = await requestJson('api/games');
     if (!response.ok) throw new Error('Could not load games. Restart the server and refresh.');
-    const {games} = await response.json();
+    const {games} = data;
     const available = games.filter(game => gameViews[game.id]);
     if (!available.length) throw new Error('No playable games are configured.');
     available.forEach(game => {
@@ -33,6 +34,11 @@ async function initialize() {
     }
     if (available.some(game => game.id === 'snake')) selector.value = 'snake';
     selector.disabled = false; selector.onchange = selectGame; selectGame();
-  } catch (error) { root.textContent = error.message; }
+  } catch (error) {
+    document.title = 'Laya • Backend required';
+    document.getElementById('game-title').textContent = 'LayaGamer';
+    root.innerHTML = `<h2>Inference backend required</h2><p class="muted">${error.message}</p>`;
+    document.getElementById('analysis').hidden = true;
+  }
 }
 initialize();

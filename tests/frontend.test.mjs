@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createInspector} from '../src/layagamer/static/inspector.js';
+import {requestJson} from '../src/layagamer/static/api.js';
 import {mount, presentDecision} from '../src/layagamer/static/games/tictactoe.js';
 
 class Element {
@@ -58,4 +59,21 @@ test('disposing a game aborts requests and ignores late decisions', async () => 
   await new Promise(done => setImmediate(done));
   assert.equal(renders, before);
   assert.equal(root.children.length, 0);
+});
+
+test('API paths respect a GitHub Pages project directory', async () => {
+  const previousFetch = globalThis.fetch;
+  document.baseURI = 'https://psurge1.github.io/LayaGamer/';
+  let requested;
+  globalThis.fetch = async url => {
+    requested = url;
+    return {ok:true, json:async () => ({games:[]})};
+  };
+  try {
+    await requestJson('api/games');
+    assert.equal(requested, '/LayaGamer/api/games');
+  } finally {
+    delete document.baseURI;
+    globalThis.fetch = previousFetch;
+  }
 });

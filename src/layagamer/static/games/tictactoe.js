@@ -1,3 +1,5 @@
+import {requestJson} from '../api.js';
+
 export function mount(root, {config, inspector}) {
 root.innerHTML = `
 <div class="section-head"><h2>The board</h2><span id="turn-badge" class="tag">X FIRST</span></div>
@@ -42,8 +44,7 @@ async function layaTurn() {
   pending = new AbortController();
   busy = true; $('retry').hidden = true; renderBoard();
   try {
-    const response = await fetch(`/api/games/${config.id}/decision`, {method:'POST', signal:pending.signal, headers:{'Content-Type':'application/json'}, body:JSON.stringify({cells,turn,agent:$('agent').value})});
-    const decision = await response.json();
+    const {response, data:decision} = await requestJson(`api/games/${config.id}/decision`, {method:'POST', signal:pending.signal, headers:{'Content-Type':'application/json'}, body:JSON.stringify({cells,turn,agent:$('agent').value})});
     if (disposed || current !== generation) return;
     if (!response.ok) throw new Error(decision.error || 'Request failed');
     const index = Number(decision.move)-1;

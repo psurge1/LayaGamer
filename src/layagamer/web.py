@@ -53,6 +53,7 @@ def make_handler(player: LayaPlayer, finetuned: FinetunedAgent | None = None) ->
                 return
             assets = {"/": ("index.html", "text/html; charset=utf-8"),
                       "/app.js": ("app.js", "text/javascript; charset=utf-8"),
+                      "/api.js": ("api.js", "text/javascript; charset=utf-8"),
                       "/inspector.js": ("inspector.js", "text/javascript; charset=utf-8"),
                       "/games/tictactoe.js": ("games/tictactoe.js", "text/javascript; charset=utf-8"),
                       "/games/snake.js": ("games/snake.js", "text/javascript; charset=utf-8"),

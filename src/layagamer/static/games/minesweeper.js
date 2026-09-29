@@ -1,3 +1,5 @@
+import {requestJson} from '../api.js';
+
 export function mount(root,{config,inspector}) {
   root.dataset.game='minesweeper';
   root.innerHTML=`<div class="section-head"><h2>The minefield</h2><span id="mine-count" class="tag"></span></div>
@@ -20,8 +22,8 @@ export function mount(root,{config,inspector}) {
     $('mine-count').textContent=`${flagged.size}/${mineTotal} FLAGS`;$('mine-step').disabled=busy||finished();$('mine-auto').disabled=finished();$('mine-auto').textContent=auto?'Pause':'Auto play';
     $('mine-status').textContent=exploded?'Mine revealed. Game over.':won()?'Minefield cleared.':busy?'Laya is choosing…':auto?'Auto play is running.':"Ready for Laya's next action.";}
   async function step(){if(busy||finished())return;const current=generation;busy=true;pending=new AbortController();render();try{
-    const response=await fetch(`/api/games/${config.id}/decision`,{method:'POST',signal:pending.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({agent:'tactical',width,height,mines:[...mines].map(point),revealed:[...revealed].map(point),flagged:[...flagged].map(point)})});
-    const decision=await response.json();if(current!==generation)return;if(!response.ok)throw new Error(decision.error||'Decision failed');records.push(decision);selected=records.length-1;apply(decision.move);busy=false;if(finished())auto=false;render();renderAnalysis();if(auto)timer=setTimeout(step,500);
+    const {response,data:decision}=await requestJson(`api/games/${config.id}/decision`,{method:'POST',signal:pending.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({agent:'tactical',width,height,mines:[...mines].map(point),revealed:[...revealed].map(point),flagged:[...flagged].map(point)})});
+    if(current!==generation)return;if(!response.ok)throw new Error(decision.error||'Decision failed');records.push(decision);selected=records.length-1;apply(decision.move);busy=false;if(finished())auto=false;render();renderAnalysis();if(auto)timer=setTimeout(step,500);
   }catch(error){if(current!==generation)return;busy=false;auto=false;render();$('mine-status').textContent=error.message;}}
   function present(record,index){const offered=record.questions.move.criteria,probs=record.selection?.probabilities||record.result.answers.move.probabilities;
     return{label:`Action ${index+1}`,latencyMs:record.latency_ms,snapshot:record.state.board.map(row=>row.join(' ')).join('\n'),note:`Minesweeper harness · ${record.state.action_constraint.replaceAll('_',' ')}.`,choices:record.legal_moves.map(move=>({label:move.replace(':',' '),offered:true,selected:move===record.move,probability:probs[move],description:offered[move]})),raw:record};}
